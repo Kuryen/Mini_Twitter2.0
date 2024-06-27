@@ -7,10 +7,12 @@ public class Group implements Component {
    private String id;
    private String name; // Store the group name
    private List<Component> children = new ArrayList<>();
+   private long creationTime;
 
    public Group(String id, String name) {
       this.id = id;
       this.name = name;
+      this.creationTime = System.currentTimeMillis();
    }
 
    @Override
@@ -24,6 +26,10 @@ public class Group implements Component {
 
    public void setName(String name) {
       this.name = name;
+   }
+
+   public long getCreationTime() {
+      return creationTime;
    }
 
    @Override
@@ -46,9 +52,9 @@ public class Group implements Component {
       List<User> users = new ArrayList<>();
       for (Component member : children) {
          if (member instanceof User) {
-               users.add((User) member);
+            users.add((User) member);
          } else if (member instanceof Group) {
-               users.addAll(((Group) member).getUsers()); // Recursively get users from subgroups
+            users.addAll(((Group) member).getUsers()); // Recursively get users from subgroups
          }
       }
       return users;

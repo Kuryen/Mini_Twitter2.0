@@ -12,9 +12,13 @@ public class User implements Component, Observer, Subject {
    private List<String> followings = new ArrayList<>(); // List to store the IDs of users this user is following
    private List<Observer> observerList = new ArrayList<>();
    private List<String> newsFeed = new ArrayList<>();
+   private long creationTime;
+   private long lastUpdateTime;
 
    public User(String id) {
       this.id = id;
+      this.creationTime = System.currentTimeMillis();
+      this.lastUpdateTime = this.creationTime;
    }
 
    public String getId() {
@@ -33,6 +37,7 @@ public class User implements Component, Observer, Subject {
       tweets.add(tweet);
       notifyFollowers(tweet); // Notify followers about the tweet
       notifyObservers(tweet); // Notify views or other observers
+      lastUpdateTime = System.currentTimeMillis();
    }
 
    private void notifyFollowers(String tweet) {
@@ -45,6 +50,18 @@ public class User implements Component, Observer, Subject {
       if (!observerList.contains(observer)) {
          observerList.add(observer);
       }
+   }
+
+   public long getCreationTime() {
+      return creationTime;
+   }
+
+   public long getLastUpdateTime() {
+      return lastUpdateTime;
+   }
+
+   public void setLastUpdateTime(long lastUpdateTime) {
+      this.lastUpdateTime = lastUpdateTime;
    }
 
    // Subject interface methods

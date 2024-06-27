@@ -24,7 +24,8 @@ public class UserView extends JFrame implements Observer {
       setSize(400, 500);
       setLayout(new BorderLayout());
       setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      currentUser.attach(this); // Ensure this method exists and works as intended in User
+      currentUser.attach(this);
+      displayCreationAndLastUpdateTime();
       initializeComponents();
    }
 
@@ -94,6 +95,15 @@ public class UserView extends JFrame implements Observer {
       }
    }
 
+   private void displayCreationAndLastUpdateTime() {
+      JLabel creationTimeLabel = new JLabel("Creation Time: " + new Date(currentUser.getCreationTime()));
+      JLabel lastUpdateTimeLabel = new JLabel("Last Update Time: " + new Date(currentUser.getLastUpdateTime()));
+      JPanel timePanel = new JPanel(new GridLayout(2, 1));
+      timePanel.add(creationTimeLabel);
+      timePanel.add(lastUpdateTimeLabel);
+      add(timePanel, BorderLayout.NORTH);
+   }
+   
    @Override
    // This method should update asynchronously on the UI thread
    public void update(String message) {

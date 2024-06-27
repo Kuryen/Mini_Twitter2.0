@@ -26,7 +26,7 @@ public class AdminControlPanel extends JFrame {
     // Private constructor to prevent instantiation outside this class
     private AdminControlPanel() {
         setTitle("Admin Control Panel");
-        setSize(800, 400);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         initializeComponents();
     }
@@ -100,8 +100,11 @@ public class AdminControlPanel extends JFrame {
         JButton addGroupButton = new JButton("Add Group");
         
         JButton viewUserButton = new JButton("View User");
+        JButton validateIDsButton = new JButton("Validate IDs");
         JButton analyticsButton = new JButton("Show Analytics");
+        JButton viewGroupDetailsButton = new JButton("View Group Details");
         JButton updateGroupButton = new JButton("Update Group");
+        JButton findLastUpdatedUserButton = new JButton("Find Last Updated User");
         JButton removeUserButton = new JButton("Remove User");
         JButton removeGroupButton = new JButton("Remove Group");
 
@@ -125,15 +128,24 @@ public class AdminControlPanel extends JFrame {
         controlPanel.add(viewUserButton, gbc);
 
         gbc.gridy = 4;
-        controlPanel.add(analyticsButton, gbc);
+        controlPanel.add(validateIDsButton, gbc);
 
         gbc.gridy = 5;
-        controlPanel.add(updateGroupButton, gbc);
+        controlPanel.add(analyticsButton, gbc);
 
         gbc.gridy = 6;
-        controlPanel.add(removeUserButton, gbc);
+        controlPanel.add(viewGroupDetailsButton, gbc);
 
         gbc.gridy = 7;
+        controlPanel.add(updateGroupButton, gbc);
+
+        gbc.gridy = 8;
+        controlPanel.add(findLastUpdatedUserButton, gbc);
+
+        gbc.gridy = 9;
+        controlPanel.add(removeUserButton, gbc);
+
+        gbc.gridy = 10;
         controlPanel.add(removeGroupButton, gbc);
 
         // Listeners for the buttons
@@ -162,6 +174,14 @@ public class AdminControlPanel extends JFrame {
                 openUserView(currentUser);
             } else {
                 JOptionPane.showMessageDialog(this, "No user selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        viewGroupDetailsButton.addActionListener(e -> {
+            if (currentGroup != null) {
+                displayGroupDetails(currentGroup);
+            } else {
+                JOptionPane.showMessageDialog(this, "No group selected.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -194,6 +214,8 @@ public class AdminControlPanel extends JFrame {
         });
 
         analyticsButton.addActionListener(e -> performAnalytics());
+        validateIDsButton.addActionListener(e -> validateIDs());
+        findLastUpdatedUserButton.addActionListener(e -> findLastUpdatedUser());
         return controlPanel;
     }
 
@@ -219,6 +241,13 @@ public class AdminControlPanel extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "User ID already exists.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void displayGroupDetails(Group group) {
+        String message = "Group ID: " + group.getId() + "\n" +
+                        "Group Name: " + group.getName() + "\n" +
+                        "Creation Time: " + new Date(group.getCreationTime());
+        JOptionPane.showMessageDialog(this, message, "Group Details", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void removeUser(User user, Group group) {
@@ -311,6 +340,64 @@ public class AdminControlPanel extends JFrame {
             JOptionPane.showMessageDialog(this, message, "Analytics Summary", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Error: Root is not a group.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void validateIDs() {
+        Set<String> allIDs = new HashSet<>();
+        Set<String> duplicateIDs = new HashSet<>();
+        List<String> invalidIDs = new ArrayList<>();
+
+        Enumeration<?> enumeration = rootNode.breadthFirstEnumeration();
+        while (enumeration.hasMoreElements()) {
+            DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode) enumeration.nextElement();
+            Object userObject = currentNode.getUserObject();
+            if (userObject instanceof Component) {
+                String id = ((Component) userObject).getId();
+                if (!allIDs.add(id)) {
+                    duplicateIDs.add(id);
+                }
+                if (id.contains(" ")) {
+                    invalidIDs.add(id);
+                }
+            }
+        }
+
+        if (duplicateIDs.isEmpty() && invalidIDs.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All IDs are valid.", "Validation Result", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String message = "Invalid IDs found:\n";
+            if (!duplicateIDs.isEmpty()) {
+                message += "Duplicate IDs: " + String.join(", ", duplicateIDs) + "\n";
+            }
+            if (!invalidIDs.isEmpty()) {
+                message += "IDs containing spaces: " + String.join(", ", invalidIDs);
+            }
+            JOptionPane.showMessageDialog(this, message, "Validation Result", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void findLastUpdatedUser() {
+        User lastUpdatedUser = null;
+        long lastUpdateTime = 0;
+
+        Enumeration<?> enumeration = rootNode.breadthFirstEnumeration();
+        while (enumeration.hasMoreElements()) {
+            DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode) enumeration.nextElement();
+            Object userObject = currentNode.getUserObject();
+            if (userObject instanceof User) {
+                User user = (User) userObject;
+                if (user.getLastUpdateTime() > lastUpdateTime) {
+                    lastUpdateTime = user.getLastUpdateTime();
+                    lastUpdatedUser = user;
+                }
+            }
+        }
+
+        if (lastUpdatedUser != null) {
+            JOptionPane.showMessageDialog(this, "Last updated user: " + lastUpdatedUser.getId(), "Last Updated User", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "No users found.", "Last Updated User", JOptionPane.ERROR_MESSAGE);
         }
     }
 
